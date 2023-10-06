@@ -1,0 +1,19 @@
+theme = "tokyonight"
+
+[editor.lsp]
+display-inlay-hints = true
+display-messages = true
+
+[editor]
+bufferline = "always"
+
+[editor.cursor-shape]
+insert = "bar"
+
+[editor.statusline]
+mode.normal = "NORMAL"
+mode.insert = "INSERT"
+mode.select = "SELECT"
+
+[keys.normal]
+C-j = {b = "jump_backward", f = "jump_forward"}

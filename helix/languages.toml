@@ -1,0 +1,9 @@
+[[language]]
+name = "rust"
+auto-format = true
+
+[language.config]
+check = {command = "clippy"}
+inlayHints = {lifetimeElisionHints = {enable = true}}
+hover = {actions = {references = {enable = true}}}
+cargo = {features = "all"}
