@@ -17,5 +17,7 @@ config.color_scheme = 'tokyonight'
 config.font_size = 14.0
 config.initial_rows = 80
 config.initial_cols = 240
+config.font = wezterm.font 'Fira Code'
+
 -- and finally, return the configuration to wezterm
 return config
