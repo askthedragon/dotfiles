@@ -3,10 +3,7 @@
 --  NOTE: Must happen before plugins are required (otherwise wrong leader will be used)
 vim.g.mapleader = ' '
 vim.g.maplocalleader = ' '
-
-vim.wo.relativenumber = true
-
-
+vim.g.copilot_assume_mapped = true
 -- [[ Install `lazy.nvim` plugin manager ]]
 --    https://github.com/folke/lazy.nvim
 --    `:help lazy.nvim.txt` for more info
@@ -31,7 +28,8 @@ vim.opt.rtp:prepend(lazypath)
 --    as they will be available in your neovim runtime.
 require('lazy').setup({
   -- NOTE: First, some plugins that don't require any configuration
-
+  -- github copilot
+  'github/copilot.vim',
   -- Git related plugins
   'tpope/vim-fugitive',
   'tpope/vim-rhubarb',
@@ -177,23 +175,11 @@ require('lazy').setup({
     opts = {},
     config = function()
       vim.cmd [[colorscheme tokyonight-night]]
+      -- Set Transparent Background
+      vim.cmd [[highlight Normal guibg=NONE ctermbg=NONE]]
+      vim.cmd [[highlight NonText guibg=NONE]]
     end,
   },
-
-  -- {
-  --   -- Theme inspired by Atom
-  --   'navarasu/onedark.nvim',
-  --   priority = 1000,
-  --   lazy = false,
-  --   config = function()
-  --     require('onedark').setup {
-  --       -- Set a style preset. 'dark' is default.
-  --       style = 'dark', -- dark, darker, cool, deep, warm, warmer, light
-  --     }
-  --     require('onedark').load()
-  --   end,
-  -- },
-
   {
     -- Set lualine as statusline
     'nvim-lualine/lualine.nvim',
@@ -271,10 +257,12 @@ require('lazy').setup({
 
 -- Set highlight on search
 vim.o.hlsearch = false
+vim.o.incsearch = true
+vim.o.scrolloff = 12
 
 -- Make line numbers default
 vim.wo.number = true
-
+vim.wo.relativenumber = true
 -- Enable mouse mode
 vim.o.mouse = 'a'
 
@@ -295,9 +283,8 @@ vim.o.smartcase = true
 
 -- Keep signcolumn on by default
 vim.wo.signcolumn = 'yes'
-
 -- Decrease update time
-vim.o.updatetime = 250
+vim.o.updatetime = 50
 vim.o.timeoutlen = 300
 
 -- Set completeopt to have a better completion experience
@@ -323,7 +310,7 @@ vim.keymap.set('n', '<leader>e', vim.diagnostic.open_float, { desc = 'Open float
 vim.keymap.set('n', '<leader>q', vim.diagnostic.setloclist, { desc = 'Open diagnostics list' })
 vim.keymap.set("n", "<C-d>", "<C-d>zz")
 vim.keymap.set("n", "<C-u>", "<C-u>zz")
-
+vim.keymap.set("n", "<leader>p", [["_dP]])
 
 -- [[ Highlight on yank ]]
 -- See `:help vim.highlight.on_yank()`
@@ -366,7 +353,6 @@ local function find_git_root()
     -- Extract the directory from the current file's path
     current_dir = vim.fn.fnamemodify(current_file, ':h')
   end
-
   -- Find the Git root directory from the current file's path
   local git_root = vim.fn.systemlist('git -C ' .. vim.fn.escape(current_dir, ' ') .. ' rev-parse --show-toplevel')[1]
   if vim.v.shell_error ~= 0 then
@@ -500,10 +486,6 @@ local on_attach = function(client, bufnr)
   -- In this case, we create a function that lets us more easily define mappings specific
   -- for LSP related items. It sets the mode, buffer and description for us each time.
 
-  -- if client.server_capabilities.inlayHintProvider then
-  --  vim.lsp.inlay_hint(bufnr, true)
-  -- end
-
   local nmap = function(keys, func, desc)
     if desc then
       desc = 'LSP: ' .. desc
@@ -576,7 +558,7 @@ vim.api.nvim_create_autocmd("LspAttach", {
     -- whatever other lsp config you want
   end
 })
-
+--
 -- Enable the following language servers
 --  Feel free to add/remove any LSPs that you want here. They will automatically be installed.
 --
@@ -587,11 +569,15 @@ vim.api.nvim_create_autocmd("LspAttach", {
 --  define the property 'filetypes' to the map in question.
 local servers = {
   -- clangd = {},
-  -- gopls = {},
-  -- pyright = {},
+  gopls = {},
+  pyright = {},
+  pylsp = {
+    pylsp = { black = { enabled = true }, isort = { enabled = true } } },
+  yamlls = {},
   rust_analyzer = {
     ['rust-analyzer'] = {
       cargo = {
+        features = "all",
         allFeatures = true,
         -- loadOutDirsFromCheck = true,
         -- runBuildScripts = true,
