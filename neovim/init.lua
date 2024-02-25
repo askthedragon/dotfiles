@@ -598,20 +598,25 @@ local servers = {
       --     ['napi-derive'] = { 'napi' },
       --     ['async-recursion'] = { 'async_recursion' },
       --   },
-    },
+      --},
 
-    completion = {
-      fullFunctionSignatures = {
-        enable = true,
+      completion = {
+        fullFunctionSignatures = {
+          enable = true,
+        },
+        postfix = {
+          enable = false,
+        },
+
       },
-    },
-    inlayHints = {
-      lifetimeElisionHints = { enable = true },
-      closureReturnTypeHints = {
-        enable = true
-      },
-      bindingModeHints = {
-        enable = true
+      inlayHints = {
+        lifetimeElisionHints = { enable = true },
+        closureReturnTypeHints = {
+          enable = true
+        },
+        bindingModeHints = {
+          enable = true
+        },
       },
     },
   },
@@ -702,7 +707,7 @@ cmp.setup {
   },
   sources = {
     { name = 'nvim_lsp' },
-    { name = 'luasnip' },
+    -- { name = 'luasnip' },
     { name = 'path' },
   },
 }
