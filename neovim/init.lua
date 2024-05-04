@@ -1,48 +1,3 @@
---[[
-
-Kickstart Guide:
-
-  TODO: The very first thing you should do is to run the command `:Tutor` in Neovim.
-
-    If you don't know what this means, type the following:
-      - <escape key>
-      - :
-      - Tutor
-      - <enter key>
-
-    (If you already know how the Neovim basics, you can skip this step)
-
-  Once you've completed that, you can continue working through **AND READING** the rest
-  of the kickstart init.lua
-
-  Next, run AND READ `:help`.
-    This will open up a help window with some basic information
-    about reading, navigating and searching the builtin help documentation.
-
-    This should be the first place you go to look when you're stuck or confused
-    with something. It's one of my favorite neovim features.
-
-    MOST IMPORTANTLY, we provide a keymap "<space>sh" to [s]earch the [h]elp documentation,
-    which is very useful when you're not sure exactly what you're looking for.
-
-  I have left several `:help X` comments throughout the init.lua
-    These are hints about where to find more information about the relevant settings,
-    plugins or neovim features used in kickstart.
-
-   NOTE: Look for lines like this
-
-    Throughout the file. These are for you, the reader, to help understand what is happening.
-    Feel free to delete them once you know what you're doing, but they should serve as a guide
-    for when you are first encountering a few different constructs in your nvim config.
-
-If you experience any errors while trying to install kickstart, run `:checkhealth` for more info
-
-I hope you enjoy your Neovim journey,
-- TJ
-
-P.S. You can delete this when you're done too. It's your config now! :)
---]]
-
 -- Set <space> as the leader key
 -- See `:help mapleader`
 --  NOTE: Must happen before plugins are loaded (otherwise wrong leader will be used)
@@ -161,8 +116,6 @@ vim.api.nvim_create_autocmd("TextYankPost", {
     end,
 })
 
--- [[ Install `lazy.nvim` plugin manager ]]
---    See `:help lazy.nvim.txt` or https://github.com/folke/lazy.nvim for more info
 local lazypath = vim.fn.stdpath("data") .. "/lazy/lazy.nvim"
 if not vim.loop.fs_stat(lazypath) then
     local lazyrepo = "https://github.com/folke/lazy.nvim.git"
@@ -170,16 +123,6 @@ if not vim.loop.fs_stat(lazypath) then
 end ---@diagnostic disable-next-line: undefined-field
 vim.opt.rtp:prepend(lazypath)
 
--- [[ Configure and install plugins ]]
---
---  To check the current status of your plugins, run
---    :Lazy
---
---  You can press `?` in this menu for help. Use `:q` to close the window
---
---  To update plugins, you can run
---    :Lazy update
---
 -- NOTE: Here is where you install your plugins.
 require("lazy").setup({
     -- NOTE: Plugins can be added with a link (or for a github repo: 'owner/repo' link).
@@ -235,23 +178,8 @@ require("lazy").setup({
     "github/copilot.vim",
     "tpope/vim-sleuth", -- Detect tabstop and shiftwidth automatically
 
-    -- NOTE: Plugins can also be added by using a table,
-    -- with the first argument being the link and the following
-    -- keys can be used to configure plugin behavior/loading/etc.
-    --
-    -- Use `opts = {}` to force a plugin to be loaded.
-    --
-    --  This is equivalent to:
-    --    require('Comment').setup({})
-
-    -- "gc" to comment visual regions/lines
     { "numToStr/Comment.nvim", opts = {} },
 
-    -- Here is a more advanced example where we pass configuration
-    -- options to `gitsigns.nvim`. This is equivalent to the following lua:
-    --    require('gitsigns').setup({ ... })
-    --
-    -- See `:help gitsigns` to understand what the configuration keys do
     { -- Adds git related signs to the gutter, as well as utilities for managing changes
         "lewis6991/gitsigns.nvim",
         opts = {
@@ -264,21 +192,6 @@ require("lazy").setup({
             },
         },
     },
-
-    -- NOTE: Plugins can also be configured to run lua code when they are loaded.
-    --
-    -- This is often very useful to both group configuration, as well as handle
-    -- lazy loading plugins that don't need to be loaded immediately at startup.
-    --
-    -- For example, in the following configuration, we use:
-    --  event = 'VeryLazy'
-    --
-    -- which loads which-key after all the UI elements are loaded. Events can be
-    -- normal autocommands events (`:help autocmd-events`).
-    --
-    -- Then, because we use the `config` key, the configuration only runs
-    -- after the plugin has been loaded:
-    --  config = function() ... end
 
     { -- Useful plugin to show you pending keybinds.
         "folke/which-key.nvim",
@@ -296,13 +209,6 @@ require("lazy").setup({
             })
         end,
     },
-
-    -- NOTE: Plugins can specify dependencies.
-    --
-    -- The dependencies are proper plugin specifications as well - anything
-    -- you do for a plugin at the top level, you can do for a dependency.
-    --
-    -- Use the `dependencies` key to specify the dependencies of a particular plugin
 
     { -- Fuzzy Finder (files, lsp, etc)
         "nvim-telescope/telescope.nvim",
@@ -424,35 +330,6 @@ require("lazy").setup({
             { "j-hui/fidget.nvim", opts = {} },
         },
         config = function()
-            -- Brief Aside: **What is LSP?**
-            --
-            -- LSP is an acronym you've probably heard, but might not understand what it is.
-            --
-            -- LSP stands for Language Server Protocol. It's a protocol that helps editors
-            -- and language tooling communicate in a standardized fashion.
-            --
-            -- In general, you have a "server" which is some tool built to understand a particular
-            -- language (such as `gopls`, `lua_ls`, `rust_analyzer`, etc). These Language Servers
-            -- (sometimes called LSP servers, but that's kind of like ATM Machine) are standalone
-            -- processes that communicate with some "client" - in this case, Neovim!
-            --
-            -- LSP provides Neovim with features like:
-            --  - Go to definition
-            --  - Find references
-            --  - Autocompletion
-            --  - Symbol Search
-            --  - and more!
-            --
-            -- Thus, Language Servers are external tools that must be installed separately from
-            -- Neovim. This is where `mason` and related plugins come into play.
-            --
-            -- If you're wondering about lsp vs treesitter, you can check out the wonderfully
-            -- and elegantly composed help section, `:help lsp-vs-treesitter`
-
-            --  This function gets run when an LSP attaches to a particular buffer.
-            --    That is to say, every time a new file is opened that is associated with
-            --    an lsp (for example, opening `main.rs` is associated with `rust_analyzer`) this
-            --    function will be executed to configure the current buffer
             vim.api.nvim_create_autocmd("LspAttach", {
                 group = vim.api.nvim_create_augroup("kickstart-lsp-attach", { clear = true }),
                 callback = function(event)
@@ -542,10 +419,7 @@ require("lazy").setup({
                     -- whatever other lsp config you want
                 end,
             })
-            -- LSP servers and clients are able to communicate to each other what features they support.
-            --  By default, Neovim doesn't support everything that is in the LSP Specification.
-            --  When you add nvim-cmp, luasnip, etc. Neovim now has *more* capabilities.
-            --  So, we create new capabilities with nvim cmp, and then broadcast that to the servers.
+
             local capabilities = vim.lsp.protocol.make_client_capabilities()
             capabilities = vim.tbl_deep_extend("force", capabilities, require("cmp_nvim_lsp").default_capabilities())
 
@@ -655,16 +529,8 @@ require("lazy").setup({
                 },
             }
 
-            -- Ensure the servers and tools above are installed
-            --  To check the current status of installed tools and/or manually install
-            --  other tools, you can run
-            --    :Mason
-            --
-            --  You can press `g?` for help in this menu
             require("mason").setup()
 
-            -- You can add other tools here that you want Mason to install
-            -- for you, so that they are available from within Neovim.
             local ensure_installed = vim.tbl_keys(servers or {})
             vim.list_extend(ensure_installed, {
                 "stylua", -- Used to format lua code
@@ -880,23 +746,9 @@ require("lazy").setup({
         end,
     },
 
-    -- The following two comments only work if you have downloaded the kickstart repo, not just copy pasted the
-    -- init.lua. If you want these files, they are in the repository, so you can just download them and
-    -- put them in the right spots if you want.
-
-    -- NOTE: Next step on your Neovim journey: Add/Configure additional plugins for kickstart
-    --
-    --  Here are some example plugins that I've included in the kickstart repository.
-    --  Uncomment any of the lines below to enable them (you will need to restart nvim).
-    --
     -- require 'kickstart.plugins.debug',
     -- require 'kickstart.plugins.indent_line',
 
-    -- NOTE: The import below can automatically add your own plugins, configuration, etc from `lua/custom/plugins/*.lua`
-    --    This is the easiest way to modularize your config.
-    --
-    --  Uncomment the following line and add your plugins to `lua/custom/plugins/*.lua` to get going.
-    --    For additional information, see `:help lazy.nvim-lazy.nvim-structuring-your-plugins`
     -- { import = 'custom.plugins' },
 })
 
