@@ -1,0 +1,4 @@
+#!/bin/sh
+# Xsetup - run as root before the login dialog appears
+xrandr --output DisplayPort-0 --off
+xrandr --output HDMI-A-0 --mode 1920x1080
