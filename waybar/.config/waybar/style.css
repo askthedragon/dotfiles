@@ -1,0 +1,123 @@
+* {
+    border: none;
+    border-radius: 0;
+    font-family: "JetBrainsMono Nerd Font", monospace;
+    font-size: 13px;
+    min-height: 0;
+}
+
+window#waybar {
+    background: rgba(0, 0, 0, 0.8);
+    color: #00ff00;
+}
+
+#workspaces button {
+    padding: 0 5px;
+    background: transparent;
+    color: #00ff00;
+    border-bottom: 3px solid transparent;
+}
+
+#workspaces button.active {
+    background: #00ff00;
+    color: #000000;
+    border-bottom: 3px solid #00ff00;
+}
+
+#workspaces button:hover {
+    background: rgba(0, 255, 0, 0.2);
+    box-shadow: inherit;
+    border-bottom: 3px solid #00ff00;
+}
+
+#window,
+#clock,
+#battery,
+#cpu,
+#memory,
+#network,
+#pulseaudio,
+#wireplumber,
+#custom-spotify,
+#tray,
+#mode,
+#custom-power {
+    padding: 0 10px;
+    margin: 0 5px;
+    color: #00ff00;
+    border-bottom: 3px solid #00ff00;
+}
+
+#clock {
+    background-color: rgba(0, 255, 0, 0.1);
+}
+
+#battery {
+    background-color: rgba(0, 255, 0, 0.1);
+}
+
+#battery.charging {
+    color: #ffffff;
+    background-color: #26A65B;
+}
+
+@keyframes blink {
+    to {
+        background-color: #ffffff;
+        color: #000000;
+    }
+}
+
+#battery.critical:not(.charging) {
+    background: #f53c3c;
+    color: #ffffff;
+    animation-name: blink;
+    animation-duration: 0.5s;
+    animation-timing-function: linear;
+    animation-iteration-count: infinite;
+    animation-direction: alternate;
+}
+
+#cpu {
+    background: rgba(0, 255, 0, 0.1);
+}
+
+#memory {
+    background: rgba(0, 255, 0, 0.1);
+}
+
+#network {
+    background: rgba(0, 255, 0, 0.1);
+}
+
+#network.disconnected {
+    background: #f53c3c;
+}
+
+#pulseaudio,
+#wireplumber {
+    background: rgba(0, 255, 0, 0.1);
+}
+
+#pulseaudio.muted,
+#wireplumber.muted {
+    background: #90b1b1;
+    color: #2a5c45;
+}
+
+#custom-power {
+    background: rgba(0, 255, 0, 0.1);
+}
+
+#tray {
+    background-color: rgba(0, 255, 0, 0.1);
+}
+
+#tray > .passive {
+    -gtk-icon-effect: dim;
+}
+
+#tray > .needs-attention {
+    -gtk-icon-effect: highlight;
+    background-color: #eb4d4b;
+}
