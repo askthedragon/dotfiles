@@ -1,0 +1,15 @@
+theme = tokyonight_night
+font-family = IBM Plex Mono
+font-size = 16
+window-height = 80 
+window-width = 124
+window-position-x = 100
+# custom-shader = ./shaders/inside-the-matrix.glsl
+# custom-shader = ./shaders/bettercrt.glsl
+# custom-shader = ./shaders/glitchy.glsl
+# custom-shader = ./shaders/tft.glsl
+# custom-shader = ./shaders/retro-terminal.glsl
+# custom-shader = ./shaders/bloom.glsl
+# custom-shader = ./shaders/matrix-hallway.glsl
+# custom-shader = ./shaders/in-game-crt.glsl
+custom-shader = ./shaders/test.glsl
