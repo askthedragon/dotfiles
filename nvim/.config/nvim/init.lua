@@ -102,10 +102,10 @@ vim.keymap.set("n", "<down>", '<cmd>echo "Use j to move!!"<CR>')
 -- vim.keymap.set("n", "<C-j>", "<C-w><C-j>", { desc = "Move focus to the lower window" })
 -- vim.keymap.set("n", "<C-k>", "<C-w><C-k>", { desc = "Move focus to the upper window" })
 
-vim.diagnostic.config({ virtual_lines = true })
-
 -- [[ Basic Autocommands ]]
 --  See `:help lua-guide-autocommands`
+--
+vim.diagnostic.config({ virtual_lines = true })
 
 -- Highlight when yanking (copying) text
 --  Try it with `yap` in normal mode
@@ -129,6 +129,10 @@ vim.opt.rtp:prepend(lazypath)
 require("lazy").setup({
 	-- NOTE: Plugins can be added with a link (or for a github repo: 'owner/repo' link).
 	{
+		"nvim-lualine/lualine.nvim",
+		dependencies = { "nvim-tree/nvim-web-devicons" },
+	},
+	{
 		"christoomey/vim-tmux-navigator",
 		cmd = {
 			"TmuxNavigateLeft",
@@ -149,7 +153,7 @@ require("lazy").setup({
 		"saecki/crates.nvim",
 		tag = "stable",
 		config = function()
-			require("crates").setup({})
+			require("crates").setup()
 		end,
 	},
 	{
@@ -159,24 +163,6 @@ require("lazy").setup({
 		-- use opts = {} for passing setup options
 		-- this is equalent to setup({}) function
 	},
-	-- {
-	--     "linux-cultist/venv-selector.nvim",
-	--     dependencies = { "neovim/nvim-lspconfig", "nvim-telescope/telescope.nvim", "mfussenegger/nvim-dap-python" },
-	--     opts = {
-	--         -- Your options go here
-	--         -- name = "venv",
-	--         -- auto_refresh = false
-	--         name = { "venv", ".venv" },
-	--         parents = 1,
-	--     },
-	--     event = "VeryLazy", -- Optional: needed only if you want to type `:VenvSelect` without a keymapping
-	--     keys = {
-	--         -- Keymap to open VenvSelector to pick a venv.
-	--         { "<leader>vs", "<cmd>VenvSelect<cr>" },
-	--         -- Keymap to retrieve the venv from a cache (the one previously used for the same project directory).
-	--         { "<leader>vc", "<cmd>VenvSelectCached<cr>" },
-	--     },
-	-- },
 	"github/copilot.vim",
 	"tpope/vim-sleuth", -- Detect tabstop and shiftwidth automatically
 
@@ -417,8 +403,8 @@ require("lazy").setup({
 				group = vim.api.nvim_create_augroup("UserLspConfig", {}),
 				callback = function(args)
 					local client = vim.lsp.get_client_by_id(args.data.client_id)
-					if client and client.server_capabilities and client.server_capabilities.inlayHintProvider then
-						vim.lsp.inlay_hint.enable(true, nil)
+					if client and client.server_capabilities.inlayHintProvider then
+						vim.lsp.inlay_hint.enable(true)
 					end
 					-- whatever other lsp config you want
 				end,
@@ -437,17 +423,26 @@ require("lazy").setup({
 			--  - settings (table): Override the default settings passed when initializing the server.
 			--        For example, to see the options for `lua_ls`, you could go to: https://luals.github.io/wiki/settings/
 			local servers = {
-				clangd = {
-					cmd = { "clangd", "--offset-encoding=utf-16" },
-				},
-				black = {},
+				-- clangd = {},
+				-- black = {},
 				isort = {},
-				-- gopls = {},
+				gopls = {},
+				golangci_lint_ls = {
+					init_options = {
+						command = { vim.fn.expand("~/go/bin/golangci-lint"), "run", "--out-format", "json" },
+					},
+				},
 				pyright = {},
-				-- powershell_es = {},
+				powershell_es = {},
 				taplo = {},
+				jsonls = {},
 				rust_analyzer = {
 					cmd = { "rust-analyzer" },
+					capabilities = {
+						general = {
+							positionEncodings = { "utf-16" },
+						},
+					},
 					settings = {
 						["rust-analyzer"] = {
 							cargo = {
@@ -501,8 +496,7 @@ require("lazy").setup({
 				--
 				-- But for many setups, the LSP (`tsserver`) will work just fine
 				-- tsserver = {},
-				--
-
+				ts_ls = {},
 				lua_ls = {
 					-- cmd = {...},
 					-- filetypes { ...},
@@ -540,11 +534,13 @@ require("lazy").setup({
 			local ensure_installed = vim.tbl_keys(servers or {})
 			vim.list_extend(ensure_installed, {
 				"stylua", -- Used to format lua code
-				"clang-format",
+				"golangci-lint",
 			})
 			require("mason-tool-installer").setup({ ensure_installed = ensure_installed })
 
 			require("mason-lspconfig").setup({
+				ensure_installed = {},
+				automatic_installation = true,
 				handlers = {
 					function(server_name)
 						local server = servers[server_name] or {}
@@ -561,25 +557,32 @@ require("lazy").setup({
 
 	{ -- Autoformat
 		"stevearc/conform.nvim",
+		lazy = false,
+		keys = {
+			{
+				-- Customize or remove this keymap to your liking
+				"<leader>cf",
+				function()
+					require("conform").format({ async = true, lsp_fallback = true })
+				end,
+				mode = "",
+				desc = "Format buffer",
+			},
+		},
 		opts = {
 			notify_on_error = true,
 			format_on_save = {
-				timeout_ms = 500,
+				timeout_ms = 2000,
 				lsp_fallback = true,
 			},
 			formatters_by_ft = {
 				lua = { "stylua" },
 				-- Conform can also run multiple formatters sequentially
 				python = { "isort", "black" },
-				c = { "clang-format" },
+				--
 				-- You can use a sub-list to tell conform to run *until* a formatter
 				-- is found.
 				-- javascript = { { "prettierd", "prettier" } },
-			},
-			formatters = {
-				["clang-format"] = {
-					prepend_args = { "-style={IndentWidth: 4}" },
-				},
 			},
 		},
 	},
@@ -685,7 +688,16 @@ require("lazy").setup({
 		"folke/tokyonight.nvim",
 		lazy = false, -- make sure we load this during startup if it is your main colorscheme
 		priority = 1000, -- make sure to load this before all the other start plugins
-		config = function()
+		opts = {
+			style = "night",
+			styles = {
+				keywords = { italic = false },
+				comments = { italic = false },
+				functions = { italic = false },
+				variables = { italic = false },
+			},
+		},
+		init = function()
 			-- Load the colorscheme here
 			vim.cmd.colorscheme("tokyonight-night")
 
@@ -742,7 +754,7 @@ require("lazy").setup({
 
 			---@diagnostic disable-next-line: missing-fields
 			require("nvim-treesitter.configs").setup({
-				ensure_installed = { "bash", "c", "html", "lua", "markdown", "vim", "vimdoc" },
+				ensure_installed = { "rust", "bash", "c", "html", "lua", "markdown", "vim", "vimdoc" },
 				-- Autoinstall languages that are not installed
 				auto_install = true,
 				highlight = { enable = true },
