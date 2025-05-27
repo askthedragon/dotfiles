@@ -430,7 +430,14 @@ require("lazy").setup({
 				gopls = {},
 				golangci_lint_ls = {
 					init_options = {
-						command = { vim.fn.expand("~/go/bin/golangci-lint"), "run", "--out-format", "json" },
+						command = {
+							vim.fn.expand("/opt/homebrew/bin/golangci-lint"),
+							"run",
+							"--output.json.path",
+							"stdout",
+							"--show-stats=false",
+							"--issues-exit-code=1",
+						},
 					},
 				},
 				pyright = {},
@@ -455,12 +462,15 @@ require("lazy").setup({
 								--   rebuildOnSave = true,
 								-- },
 							},
-							-- Add clippy lints for Rust.
-							checkOnSave = {
-								allFeatures = true,
+							check = {
 								command = "clippy",
-								extraArgs = { "--no-deps" },
+								allFeatures = true,
+								-- extraArgs = { "--", "--no-deps", "-W", "clippy::pedantic" },
+								extraArgs = { "--", "--no-deps" },
 							},
+
+							-- Add clippy lints for Rust.
+							checkOnSave = true,
 							-- procMacro = {
 							--   enable = true,
 							--   ignored = {

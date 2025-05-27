@@ -12,4 +12,4 @@ window-position-x = 100
 # custom-shader = ./shaders/bloom.glsl
 # custom-shader = ./shaders/matrix-hallway.glsl
 # custom-shader = ./shaders/in-game-crt.glsl
-custom-shader = ./shaders/test.glsl
+# custom-shader = ./shaders/test.glsl
