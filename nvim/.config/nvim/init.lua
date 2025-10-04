@@ -310,7 +310,6 @@ require("lazy").setup({
 
 	{ -- LSP Configuration & Plugins
 		"williamboman/mason.nvim",
-		version = "v1.*",
 		dependencies = {
 			"WhoIsSethDaniel/mason-tool-installer.nvim",
 			-- Useful status updates for LSP.
