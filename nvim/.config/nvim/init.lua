@@ -120,7 +120,7 @@ vim.api.nvim_create_autocmd("TextYankPost", {
 })
 
 local lazypath = vim.fn.stdpath("data") .. "/lazy/lazy.nvim"
-if not vim.loop.fs_stat(lazypath) then
+if not vim.uv.fs_stat(lazypath) then
 	local lazyrepo = "https://github.com/folke/lazy.nvim.git"
 	vim.fn.system({ "git", "clone", "--filter=blob:none", "--branch=stable", lazyrepo, lazypath })
 end ---@diagnostic disable-next-line: undefined-field
@@ -309,15 +309,11 @@ require("lazy").setup({
 	},
 
 	{ -- LSP Configuration & Plugins
-		"neovim/nvim-lspconfig",
+		"williamboman/mason.nvim",
+		version = "v1.*",
 		dependencies = {
-			-- Automatically install LSPs and related tools to stdpath for neovim
-			{ "williamboman/mason.nvim", version = "v1.*" },
-			{ "williamboman/mason-lspconfig.nvim", version = "v1.*" },
 			"WhoIsSethDaniel/mason-tool-installer.nvim",
-
 			-- Useful status updates for LSP.
-			-- NOTE: `opts = {}` is the same as calling `require('fidget').setup({})`
 			{ "j-hui/fidget.nvim", opts = {} },
 		},
 		config = function()
@@ -401,165 +397,172 @@ require("lazy").setup({
 				callback = function(args)
 					local client = vim.lsp.get_client_by_id(args.data.client_id)
 					if client and client.server_capabilities.inlayHintProvider then
-						vim.lsp.inlay_hint.enable(true)
+						vim.lsp.inlay_hint.enable(true, { bufnr = args.buf })
 					end
-					-- whatever other lsp config you want
 				end,
 			})
 
+			-- Configure LSP servers using native vim.lsp.config
 			local capabilities = vim.lsp.protocol.make_client_capabilities()
 			capabilities = vim.tbl_deep_extend("force", capabilities, require("cmp_nvim_lsp").default_capabilities())
 
-			-- Enable the following language servers
-			--  Feel free to add/remove any LSPs that you want here. They will automatically be installed.
-			--
-			--  Add any additional override configuration in the following tables. Available keys are:
-			--  - cmd (table): Override the default command used to start the server
-			--  - filetypes (table): Override the default list of associated filetypes for the server
-			--  - capabilities (table): Override fields in capabilities. Can be used to disable certain LSP features.
-			--  - settings (table): Override the default settings passed when initializing the server.
-			--        For example, to see the options for `lua_ls`, you could go to: https://luals.github.io/wiki/settings/
-			local servers = {
-				-- clangd = {},
-				-- black = {},
-				isort = {},
-				gopls = {},
-				golangci_lint_ls = {
-					init_options = {
-						command = {
-							vim.fn.expand("/opt/homebrew/bin/golangci-lint"),
-							"run",
-							"--output.json.path",
-							"stdout",
-							"--show-stats=false",
-							"--issues-exit-code=1",
-						},
+			-- Configure each language server
+			vim.lsp.config.gopls = {
+				cmd = { "gopls" },
+				filetypes = { "go", "gomod", "gowork", "gotmpl" },
+				root_markers = { "go.work", "go.mod", ".git" },
+				capabilities = capabilities,
+			}
+
+			vim.lsp.config.golangci_lint_ls = {
+				cmd = { "golangci-lint-langserver" },
+				filetypes = { "go", "gomod" },
+				root_markers = { ".golangci.yml", ".golangci.yaml", "go.work", "go.mod", ".git" },
+				capabilities = capabilities,
+				init_options = {
+					command = {
+						vim.fn.expand("/opt/homebrew/bin/golangci-lint"),
+						"run",
+						"--output.json.path",
+						"stdout",
+						"--show-stats=false",
+						"--issues-exit-code=1",
 					},
 				},
-				pyright = {},
-				powershell_es = {},
-				taplo = {},
-				jsonls = {},
-				rust_analyzer = {
-					cmd = { "rust-analyzer" },
-					capabilities = {
-						general = {
-							positionEncodings = { "utf-16" },
-						},
-						offsetEncoding = { "utf-16" },
-					},
-					settings = {
-						["rust-analyzer"] = {
-							cargo = {
-								features = "all",
-								allFeatures = true,
-								-- loadOutDirsFromCheck = true,
-								-- runBuildScripts = true,
-								-- buildScripts = {
-								--   rebuildOnSave = true,
-								-- },
-							},
-							check = {
-								command = "clippy",
-								allFeatures = true,
-								-- extraArgs = { "--", "--no-deps", "-W", "clippy::pedantic" },
-								extraArgs = { "--", "--no-deps" },
-							},
+			}
 
-							-- Add clippy lints for Rust.
-							checkOnSave = true,
-							-- procMacro = {
-							--   enable = true,
-							--   ignored = {
-							--     ['async-trait'] = { 'async_trait' },
-							--     ['napi-derive'] = { 'napi' },
-							--     ['async-recursion'] = { 'async_recursion' },
-							--   },
-							--},
+			vim.lsp.config.pyright = {
+				cmd = { "pyright-langserver", "--stdio" },
+				filetypes = { "python" },
+				root_markers = { "pyproject.toml", "setup.py", "setup.cfg", "requirements.txt", "Pipfile", ".git" },
+				capabilities = capabilities,
+			}
 
-							completion = {
-								fullFunctionSignatures = {
-									enable = true,
-								},
-								postfix = {
-									enable = false,
-								},
-							},
-							inlayHints = {
-								lifetimeElisionHints = { enable = true },
-								closureReturnTypeHints = {
-									enable = true,
-								},
-								bindingModeHints = {
-									enable = true,
-								},
-							},
-						},
+			vim.lsp.config.powershell_es = {
+				cmd = { "pwsh", "-NoLogo", "-NoProfile", "-Command" },
+				filetypes = { "ps1", "psm1", "psd1" },
+				root_markers = { ".git" },
+				capabilities = capabilities,
+			}
+
+			vim.lsp.config.taplo = {
+				cmd = { "taplo", "lsp", "stdio" },
+				filetypes = { "toml" },
+				root_markers = { ".git" },
+				capabilities = capabilities,
+			}
+
+			vim.lsp.config.jsonls = {
+				cmd = { "vscode-json-language-server", "--stdio" },
+				filetypes = { "json", "jsonc" },
+				root_markers = { ".git" },
+				capabilities = capabilities,
+			}
+
+			vim.lsp.config.rust_analyzer = {
+				cmd = { "rust-analyzer" },
+				filetypes = { "rust" },
+				root_markers = { "Cargo.toml", "rust-project.json" },
+				capabilities = vim.tbl_deep_extend("force", capabilities, {
+					general = {
+						positionEncodings = { "utf-16" },
 					},
-				},
-				-- ... etc. See `:help lspconfig-all` for a list of all the pre-configured LSPs
-				--
-				-- Some languages (like typescript) have entire language plugins that can be useful:
-				--    https://github.com/pmizio/typescript-tools.nvim
-				--
-				-- But for many setups, the LSP (`tsserver`) will work just fine
-				-- tsserver = {},
-				ts_ls = {},
-				lua_ls = {
-					-- cmd = {...},
-					-- filetypes { ...},
-					-- capabilities = {},
-					settings = {
-						Lua = {
-							runtime = { version = "LuaJIT" },
-							workspace = {
-								checkThirdParty = false,
-								-- Tells lua_ls where to find all the Lua files that you have loaded
-								-- for your neovim configuration.
-								library = {
-									"${3rd}/luv/library",
-									unpack(vim.api.nvim_get_runtime_file("", true)),
-								},
-								-- If lua_ls is really slow on your computer, you can try this instead:
-								-- library = { vim.env.VIMRUNTIME },
+					offsetEncoding = { "utf-16" },
+				}),
+				settings = {
+					["rust-analyzer"] = {
+						cargo = {
+							features = "all",
+							allFeatures = true,
+						},
+						check = {
+							command = "clippy",
+							allFeatures = true,
+							extraArgs = { "--", "--no-deps" },
+						},
+						checkOnSave = true,
+						completion = {
+							fullFunctionSignatures = {
+								enable = true,
 							},
-							completion = {
-								callSnippet = "Replace",
-							},
-							format = {
+							postfix = {
 								enable = false,
 							},
-
-							-- You can toggle below to ignore Lua_LS's noisy `missing-fields` warnings
-							-- diagnostics = { disable = { 'missing-fields' } },
+						},
+						inlayHints = {
+							lifetimeElisionHints = { enable = true },
+							closureReturnTypeHints = {
+								enable = true,
+							},
+							bindingModeHints = {
+								enable = true,
+							},
 						},
 					},
 				},
 			}
 
+			vim.lsp.config.ts_ls = {
+				cmd = { "typescript-language-server", "--stdio" },
+				filetypes = { "javascript", "javascriptreact", "typescript", "typescriptreact" },
+				root_markers = { "package.json", "tsconfig.json", "jsconfig.json", ".git" },
+				capabilities = capabilities,
+			}
+
+			vim.lsp.config.lua_ls = {
+				cmd = { "lua-language-server" },
+				filetypes = { "lua" },
+				root_markers = { ".luarc.json", ".luarc.jsonc", ".luacheckrc", ".stylua.toml", "stylua.toml", "selene.toml", "selene.yml", ".git" },
+				capabilities = capabilities,
+				settings = {
+					Lua = {
+						runtime = { version = "LuaJIT" },
+						workspace = {
+							checkThirdParty = false,
+							library = {
+								"${3rd}/luv/library",
+								unpack(vim.api.nvim_get_runtime_file("", true)),
+							},
+						},
+						completion = {
+							callSnippet = "Replace",
+						},
+						format = {
+							enable = false,
+						},
+					},
+				},
+			}
+
+			-- Setup Mason for installing language servers
 			require("mason").setup()
 
-			local ensure_installed = vim.tbl_keys(servers or {})
-			vim.list_extend(ensure_installed, {
-				"stylua", -- Used to format lua code
+			local ensure_installed = {
+				"gopls",
+				"golangci-lint-langserver",
+				"pyright",
+				"powershell-editor-services",
+				"taplo",
+				"json-lsp",
+				"rust-analyzer",
+				"typescript-language-server",
+				"lua-language-server",
+				"stylua",
 				"golangci-lint",
-			})
+			}
 			require("mason-tool-installer").setup({ ensure_installed = ensure_installed })
 
-			require("mason-lspconfig").setup({
-				ensure_installed = {},
-				automatic_installation = true,
-				handlers = {
-					function(server_name)
-						local server = servers[server_name] or {}
-
-						-- This handles overriding only values explicitly passed
-						-- by the server configuration above. Useful when disabling
-						-- certain features of an LSP (for example, turning off formatting for tsserver)
-						server.capabilities = vim.tbl_deep_extend("force", {}, capabilities, server.capabilities or {})
-						require("lspconfig")[server_name].setup(server)
-					end,
-				},
+			-- Enable all configured language servers
+			vim.lsp.enable({
+				"gopls",
+				"golangci_lint_ls",
+				"pyright",
+				"powershell_es",
+				"taplo",
+				"jsonls",
+				"rust_analyzer",
+				"ts_ls",
+				"lua_ls",
 			})
 		end,
 	},
